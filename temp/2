@@ -1,0 +1,42 @@
+<?php
+// [치트키 2] 표 합치기 (Rowspan)
+// 1. 바깥 루프 (예: 배우/제작자)
+for ($i = 0; $i < $nrows; $i++) {
+    $name = $res[$i]['NAME'];
+
+    // 2. 안쪽 데이터 개수 세기 (Rowspan용)
+    // 따옴표(')가 있으면 에러나니까 교체해주는 센스
+    $safe_name = str_replace("'", "''", $name);
+    
+    $sql_cnt = "SELECT count(*) FROM 자식테이블 WHERE 부모컬럼 = '$safe_name'";
+    $stmt_cnt = oci_parse($conn, $sql_cnt);
+    oci_execute($stmt_cnt);
+    $cnt_row = oci_fetch_array($stmt_cnt);
+    $rowspan_cnt = $cnt_row[0]; // 개수 획득
+    
+    // 개수가 0이면 1로 설정 (최소 1칸은 차지해야 하니까)
+    $cnt_opt = ($rowspan_cnt > 0) ? $rowspan_cnt : 1;
+
+    // 3. 첫 번째 칸 출력 (Rowspan 적용)
+    echo "<tr>";
+    echo "<td rowspan='$cnt_opt'>$name</td>"; 
+
+    // 4. 안쪽 루프 (예: 영화 목록)
+    if ($rowspan_cnt > 0) {
+        $sql_sub = "SELECT * FROM 자식테이블 WHERE 부모컬럼 = '$safe_name'";
+        // ... (oci_parse, oci_execute 생략) ...
+        
+        $first = true;
+        while ($sub_row = oci_fetch_array($stmt_sub)) {
+            if (!$first) echo "<tr>"; // 두 번째 줄부터는 tr 새로 열기
+            
+            echo "<td>" . $sub_row['TITLE'] . "</td>";
+            echo "</tr>";
+            
+            $first = false; // 첫 줄 끝남 표시
+        }
+    } else {
+        echo "<td>정보 없음</td></tr>";
+    }
+}
+?>
