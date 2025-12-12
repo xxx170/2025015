@@ -1,0 +1,41 @@
+<?php
+// [치트키 1] 검색 및 목록 출력
+$conn = oci_connect("c##유저명", "비번", "localhost/xe");
+
+if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    // 1. Dynamic SQL 기본틀 (1=1 덕분에 뒤에 AND만 붙이면 됨)
+    $sql = "SELECT * FROM 테이블명 WHERE 1=1";
+
+    // 2. 검색 조건 추가 (값이 있을 때만)
+    if (!empty($_POST['keyword'])) {
+        $sql .= " AND 컬럼명 LIKE :bv_keyword"; // 바인드 변수 사용
+    }
+    
+    // 3. 파싱 및 바인딩
+    $stmt = oci_parse($conn, $sql);
+    
+    if (!empty($_POST['keyword'])) {
+        $val = '%' . $_POST['keyword'] . '%'; // 와일드카드 처리
+        oci_bind_by_name($stmt, ":bv_keyword", $val);
+    }
+
+    // 4. 실행 및 전체 가져오기 (oci_fetch_all 필수!)
+    oci_execute($stmt);
+    // [중요] OCI_FETCHSTATEMENT_BY_ROW 옵션을 써야 $res[0]['TITLE'] 처럼 쓰기 편함
+    $nrows = oci_fetch_all($stmt, $res, 0, -1, OCI_FETCHSTATEMENT_BY_ROW);
+
+    // 5. 테이블 출력
+    echo "<table border='1'>";
+    echo "<tr><th>제목</th><th>내용</th></tr>";
+
+    for ($i = 0; $i < $nrows; $i++) {
+        $row = $res[$i];
+        // [주의] 오라클 컬럼명은 대문자로 넘어옴!
+        echo "<tr>";
+        echo "<td>" . $row['TITLE'] . "</td>"; // 컬럼명 TITLE
+        echo "<td>" . $row['CONTENT'] . "</td>"; 
+        echo "</tr>";
+    }
+    echo "</table>";
+}
+?>
