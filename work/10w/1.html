@@ -1,0 +1,72 @@
+<html>
+<head>
+    <title>Movie Search</title>
+    <style>
+        body { font-family: 'Malgun Gothic', sans-serif; padding: 20px; font-size: 15px; }
+        
+        .line { margin-bottom: 10px; }
+
+        input[type=text], input[type=number] { 
+            padding: 3px; 
+            border: 1px solid #999;
+        }
+        button {
+            padding: 4px 10px;
+            background-color: #eee;
+            border: 1px solid #ccc;
+            cursor: pointer;
+        }
+        
+        #result { margin-top: 20px; }
+    </style>
+
+    <script>
+        function updateTable() {
+            var formData = new FormData(document.getElementById('searchForm'));
+            
+            document.getElementById('result').innerHTML = "검색 중...";
+
+            fetch('1.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.text())
+            .then(data => {
+                document.getElementById('result').innerHTML = data;
+            })
+            .catch(error => {
+                document.getElementById('result').innerHTML = "Error: " + error;
+            });
+        }
+    </script>
+</head>
+<body>
+    <form id="searchForm" onsubmit="return false;">
+        <div class="line">
+            ① 영화제목에 포함될 단어 : 
+            <input type="text" name="title" size="20"> 
+            (LIKE <input type="checkbox" name="is_like" value="1" checked>, 
+            대소문자 구별 <input type="checkbox" name="is_case" value="1">)
+        </div>
+
+        <div class="line">
+            ② 상영시간 범위 : 
+            <input type="number" name="len_min" style="width:60px"> ~ 
+            <input type="number" name="len_max" style="width:60px">
+        </div>
+
+        <div class="line">
+            ③ <input type="number" name="actor_birth" style="width:60px"> 년 이후 태어난 배우가 출연 
+            (남자 <input type="radio" name="gender" value="male"> 
+            여자 <input type="radio" name="gender" value="female">)
+        </div>
+        
+        <div class="line">
+            <button type="button" onclick="updateTable()">검색</button>
+        </div>
+    </form>
+
+    <div id="result"></div>
+
+</body>
+</html>
