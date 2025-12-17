@@ -1,3 +1,46 @@
+### **ORDB 및 트리거 구현 **
+
+기존 `MovieDB` 스키마를 확장하여 배우의 수상 경력을 관리하는 객체 관계형 테이블을 만들고, 데이터 무결성을 위한 트리거를 작성하시오.
+
+**1-1. 객체 및 테이블 생성 (ORDB)**
+
+* 다음 구조를 가진 `StarAwards` 테이블을 생성하시오.
+* **배우이름 (Name):** PK, `MovieStar` 테이블의 `name` 참조.
+* **수상목록 (Awards):** 중첩 테이블(Nested Table) 형태.
+* 수상내역 객체(`award_ty`) 속성: `award_name`(상 이름), `year`(년도), `prize_money`(상금)
+
+
+
+
+* *(힌트: `CREATE TYPE ... AS OBJECT`, `CREATE TYPE ... AS TABLE OF`, `NESTED TABLE ... STORE AS` 사용)*
+
+**1-2. 지능형 트리거 작성 (`Star_Auto_Manage`)**
+
+* `MovieStar` 테이블에 새로운 배우가 `INSERT` 될 때 동작하는 `BEFORE INSERT` 트리거를 작성하시오.
+1. **주소 자동 생성:** `address`가 NULL이면, `5_get_random_addr` 함수(실습 때 만듦)를 사용하여 한국식 주소를 랜덤으로 생성해 넣으시오.
+2. **성별 자동 결정:** `gender`가 NULL이면, `1990년` 이후 태어난 배우들 중 가장 많은 성별로 설정하시오. (동수면 랜덤)
+3. **이력 기록:** 데이터 삽입 작업이 일어나면 `DML_History` 테이블(실습 때 만듦)에 `[시간, 테이블명('MovieStar'), 작업유형('INSERT')]`을 기록하시오.
+
+
+* *(힌트: `DBMS_RANDOM`, `:NEW`, `PRAGMA AUTONOMOUS_TRANSACTION`)*
+
+
+
+---
+
+
+
+### 💡 문제 풀이 가이드 (시험 직전 체크리스트)
+
+이 문제를 받자마자 머릿속에 다음 코드들이 떠올라야 합니다.
+
+1. **문제 1-1 (ORDB):**
+* `1_Create_StudioInfo.sql` (11/5 실습) 파일의 `CREATE TYPE` 순서를 그대로 복사해서 변수명만 바꿀 수 있는가?
+
+
+2. **문제 1-2 (트리거):**
+* `3.sql` (과제 8번)의 `:NEW.컬럼 IS NULL` 체크 로직과 `before_movie.sql` (11/12 실습)의 `DML_History` 기록 로직을 합칠 수 있는가?
+
 ### **1-1. 객체 및 테이블 생성 (ORDB)**
 
 먼저 `StarAwards`라는 테이블을 만드는데, 이 안에 `Awards`라는 리스트(상 받은 목록)가 들어가야 합니다.
@@ -47,6 +90,7 @@ NESTED TABLE Awards STORE AS awards_store_table;
 > **체크 포인트:** `NESTED TABLE ... STORE AS ...` 구문을 빼먹지 않았는지 꼭 확인하세요\!
 
 -----
+
 
 ### **1-2. 지능형 트리거 작성 (`Star_Auto_Manage`)**
 
